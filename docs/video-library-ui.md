@@ -96,9 +96,14 @@ VideoScheduler.Presentation.WPF/
 ## Configuration
 Services registered in App.xaml.cs:
 ```csharp
+// Media Foundation initialized at startup
+_mediaFoundationManager = new MediaFoundationManager();
+_mediaFoundationManager.Initialize();
+
+// Real services using Media Foundation
 services.AddSingleton<IVideoLibraryScanner, FileSystemVideoLibraryScanner>();
-services.AddSingleton<IVideoMetadataService, NoOpVideoMetadataService>();
-services.AddSingleton<IThumbnailService, PlaceholderThumbnailService>();
+services.AddSingleton<IVideoMetadataService, MediaFoundationMetadataService>();
+services.AddSingleton<IThumbnailService, MediaFoundationThumbnailService>();
 ```
 
 ## Testing
@@ -147,11 +152,12 @@ services.AddSingleton<IThumbnailService, PlaceholderThumbnailService>();
    - Add context menu (play, delete, properties)
 
 ## Known Limitations
-1. Thumbnails currently show placeholder (no actual extraction yet)
-2. Duration shows "Unknown" (NoOpVideoMetadataService used)
+1. Thumbnails currently show placeholder (PNG encoding not yet complete in MediaFoundationThumbnailService)
+2. Duration is extracted via Media Foundation (returns "Unknown" for unsupported formats or missing codecs)
 3. Folder picker uses OpenFileDialog workaround (not ideal UX)
 4. No search/filter functionality yet
 5. No persistent settings for root folder
+6. Codec information not yet extracted (future enhancement)
 
 ## Architecture Compliance
 ✅ Clean layer separation maintained

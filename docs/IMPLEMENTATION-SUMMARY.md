@@ -95,9 +95,14 @@ videoVm.ThumbnailImage = bitmap;
 **Dependency Injection:**
 ```csharp
 // App.xaml.cs
+// Media Foundation initialized at startup
+_mediaFoundationManager = new MediaFoundationManager();
+_mediaFoundationManager.Initialize();
+
+// Real services using Media Foundation
 services.AddSingleton<IVideoLibraryScanner, FileSystemVideoLibraryScanner>();
-services.AddSingleton<IVideoMetadataService, NoOpVideoMetadataService>();
-services.AddSingleton<IThumbnailService, PlaceholderThumbnailService>();
+services.AddSingleton<IVideoMetadataService, MediaFoundationMetadataService>();
+services.AddSingleton<IThumbnailService, MediaFoundationThumbnailService>();
 ```
 
 **Interface-Driven Design:**
