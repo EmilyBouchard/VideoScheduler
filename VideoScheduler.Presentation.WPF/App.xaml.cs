@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using VideoScheduler.Application.VideoLibrary.Services;
 using VideoScheduler.Infrastructure.VideoLibrary;
+using VideoScheduler.Infrastructure.VideoLibrary.MediaFoundation;
 using VideoScheduler.Presentation.WPF.Navigation;
 using VideoScheduler.Presentation.WPF.ViewModels;
 using VideoScheduler.Presentation.WPF.ViewModels.VideoLibrary;
@@ -18,12 +19,28 @@ namespace VideoScheduler.Presentation.WPF;
 public partial class App : System.Windows.Application
 {
     private IHost? _host;
+    private MediaFoundationManager? _mediaFoundationManager;
     
     public IServiceProvider Services => _host?.Services ?? throw new InvalidOperationException("Host not initialized.");
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        
+        // Initialize Media Foundation first
+        _mediaFoundationManager = new MediaFoundationManager();
+        try
+        {
+            _mediaFoundationManager.Initialize();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Failed to initialize Media Foundation: {ex.Message}\n\nThe application will run with limited functionality.",
+                "Media Foundation Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
         
         _host = Host.CreateDefaultBuilder(e.Args)
             .ConfigureServices(services =>
@@ -46,10 +63,10 @@ public partial class App : System.Windows.Application
                     );
                 });
                 
-                // Application Services
+                // Application Services - Using Media Foundation implementations
                 services.AddSingleton<IVideoLibraryScanner, FileSystemVideoLibraryScanner>();
-                services.AddSingleton<IVideoMetadataService, NoOpVideoMetadataService>();
-                services.AddSingleton<IThumbnailService, PlaceholderThumbnailService>();
+                services.AddSingleton<IVideoMetadataService, MediaFoundationMetadataService>();
+                services.AddSingleton<IThumbnailService, MediaFoundationThumbnailService>();
                 
                 // App services
                 services.AddSingleton<Services.IDispatcher, Services.WpfDispatcher>();
@@ -73,6 +90,9 @@ public partial class App : System.Windows.Application
             await _host.StopAsync(TimeSpan.FromSeconds(2));
             _host.Dispose();
         }
+        
+        // Shutdown Media Foundation
+        _mediaFoundationManager?.Dispose();
         
         base.OnExit(e);
     }
