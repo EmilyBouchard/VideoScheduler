@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource AppBg}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="FontFamily" Value="Segoe UI" />
+    </Style>
+    
+    <Style TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBg}" />
+    </Style>
+</ResourceDictionary>

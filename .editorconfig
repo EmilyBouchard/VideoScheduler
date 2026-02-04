@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# MVVMTK0042: Prefer using [ObservableProperty] on partial properties
+dotnet_diagnostic.MVVMTK0042.severity = warning
