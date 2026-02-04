@@ -60,30 +60,32 @@ var duration = await metadataService.TryGetVideoDurationAsync(filePath, ct);
 - Corrupted files: Returns null gracefully
 - Missing codecs: Returns null gracefully
 
-### Thumbnail Extraction (Partial Implementation)
+### Thumbnail Extraction (✅ Fully Implemented!)
 ```csharp
-// Frame extraction implemented, PNG encoding pending
+// Complete PNG encoding implemented!
 var thumbnailBytes = await thumbnailService.TryExtractThumbnailAsync(filePath, ct);
-// Currently returns: null (placeholder until PNG encoding complete)
+// Returns: PNG byte array or null for unsupported formats
 ```
 
 **What's Implemented**:
 - ✅ Open video file via Media Foundation
-- ✅ Create source reader
+- ✅ Create source reader with video processing enabled
+- ✅ Configure output format to RGB32 (BGRA)
 - ✅ Seek to 1-second position
 - ✅ Read video frame sample
-- ✅ Lock media buffer
-- ✅ Extract raw frame data
-
-**What's Pending**:
-- ⏳ Convert raw frame to RGB format
-- ⏳ Create bitmap from RGB data
-- ⏳ Encode as PNG byte array
+- ✅ Lock media buffer and extract frame data
+- ✅ Read frame dimensions and stride
+- ✅ Handle image orientation (bottom-up/top-down)
+- ✅ Create WPF BitmapSource from RGB data
+- ✅ Scale to thumbnail size (320x180)
+- ✅ Encode as PNG using PngBitmapEncoder
+- ✅ Return PNG byte array
 
 **Current UI Behavior**:
-- Shows placeholder emoji (🎬) when no thumbnail available
-- Shows loading indicator while thumbnail extraction is attempted
-- Gracefully handles extraction failures
+- Shows actual video thumbnails extracted from files
+- Shows loading indicator while thumbnail is being extracted
+- Shows placeholder emoji (🎬) if extraction fails
+- Gracefully handles unsupported formats
 
 ## Code Statistics
 
@@ -236,12 +238,12 @@ Presentation → Application → Domain
 ## Next Steps (Future Work)
 
 ### High Priority
-1. **Complete Thumbnail PNG Encoding** (Est: 4-8 hours)
-   - Parse video format from source reader
-   - Convert raw frame to RGB/RGBA
-   - Create WPF BitmapSource
-   - Encode to PNG using System.Drawing or WPF Imaging
-   - Test with various video formats
+1. ~~**Complete Thumbnail PNG Encoding**~~ ✅ **COMPLETED!**
+   - ~~Parse video format from source reader~~
+   - ~~Convert raw frame to RGB/RGBA~~
+   - ~~Create WPF BitmapSource~~
+   - ~~Encode to PNG using PngBitmapEncoder~~
+   - ~~Test with various video formats~~
 
 2. **Thumbnail Caching** (Est: 2-4 hours)
    - In-memory LRU cache

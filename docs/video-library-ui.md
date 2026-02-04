@@ -115,11 +115,11 @@ services.AddSingleton<IThumbnailService, MediaFoundationThumbnailService>();
 ## Future Enhancements
 
 ### High Priority
-1. **Media Foundation Thumbnail Extraction**
-   - Implement actual thumbnail extraction in Infrastructure layer
-   - Use IMFSourceReader to read video frames
-   - Convert frames to PNG byte arrays
-   - Handle unsupported formats gracefully
+1. ~~**Media Foundation Thumbnail Extraction**~~ ✅ **COMPLETED!**
+   - ~~Implement actual thumbnail extraction in Infrastructure layer~~
+   - ~~Use IMFSourceReader to read video frames~~
+   - ~~Convert frames to PNG byte arrays~~
+   - ~~Handle unsupported formats gracefully~~
 
 2. **Thumbnail Caching**
    - Add in-memory LRU cache to avoid redundant extraction
@@ -152,7 +152,7 @@ services.AddSingleton<IThumbnailService, MediaFoundationThumbnailService>();
    - Add context menu (play, delete, properties)
 
 ## Known Limitations
-1. Thumbnails currently show placeholder (PNG encoding not yet complete in MediaFoundationThumbnailService)
+1. ✅ Thumbnails are now fully working (PNG encoding complete!)
 2. Duration is extracted via Media Foundation (returns "Unknown" for unsupported formats or missing codecs)
 3. Folder picker uses OpenFileDialog workaround (not ideal UX)
 4. No search/filter functionality yet

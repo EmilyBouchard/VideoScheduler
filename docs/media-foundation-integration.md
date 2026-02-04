@@ -80,52 +80,97 @@ public async Task<TimeSpan?> TryGetVideoDurationAsync(string filePath, Cancellat
 **Interface**: `IThumbnailService`  
 **Returns**: `byte[]?` (PNG-encoded image), null for unsupported formats
 
-**Current Status**: 🚧 Partial Implementation
+**Current Status**: ✅ Fully Implemented
 - ✅ Opens video file via Media Foundation
-- ✅ Creates source reader
+- ✅ Creates source reader with video processing enabled
+- ✅ Configures output format to RGB32 (BGRA)
 - ✅ Seeks to 1-second position (skips black intro frames)
 - ✅ Reads a video sample (frame)
-- ✅ Locks media buffer and extracts raw frame data
-- ⏳ TODO: Convert raw frame to RGB format
-- ⏳ TODO: Create bitmap from RGB data
-- ⏳ TODO: Encode as PNG and return bytes
+- ✅ Locks media buffer and extracts frame data
+- ✅ Reads frame dimensions and stride from media type
+- ✅ Handles image orientation (bottom-up vs top-down)
+- ✅ Creates WPF BitmapSource from RGB data
+- ✅ Scales to thumbnail size (320x180)
+- ✅ Encodes as PNG using PngBitmapEncoder
+- ✅ Returns PNG byte array
 
 **Implementation Details**:
 ```csharp
 public async Task<byte[]?> TryExtractThumbnailAsync(string filePath, CancellationToken ct)
 {
-    // 1. Create source reader from file
-    MFCreateSourceReaderFromMediaSource(mediaSource, ..., out sourceReader);
+    // 1. Create source reader from file with video processing enabled
+    MFCreateAttributes(out attributes, 1);
+    IMFAttributes_SetUINT32(attributes, MF_ENABLE_VIDEO_PROCESSING, 1);
+    MFCreateSourceReaderFromMediaSource(mediaSource, attributes, out sourceReader);
     
     // 2. Select first video stream
     IMFSourceReader_SetStreamSelection(sourceReader, FIRST_VIDEO_STREAM, true);
     
-    // 3. Seek to 1 second (skip black frames)
-    IMFSourceReader_SetCurrentPosition(sourceReader, ..., 10000000);
+    // 3. Configure output format to RGB32 (BGRA)
+    MFCreateMediaType(out mediaType);
+    IMFMediaType_SetGUID(mediaType, MF_MT_MAJOR_TYPE, MFMediaType_Video);
+    IMFMediaType_SetGUID(mediaType, MF_MT_SUBTYPE, MFVideoFormat_RGB32);
+    IMFSourceReader_SetCurrentMediaType(sourceReader, FIRST_VIDEO_STREAM, mediaType);
     
-    // 4. Read a sample (video frame)
-    IMFSourceReader_ReadSample(sourceReader, ..., out sample);
+    // 4. Get actual media type to read dimensions
+    IMFSourceReader_GetCurrentMediaType(sourceReader, FIRST_VIDEO_STREAM, out mediaType);
+    IMFMediaType_GetUINT64(mediaType, MF_MT_FRAME_SIZE, out frameSize);
+    uint width = (uint)(frameSize >> 32);
+    uint height = (uint)(frameSize & 0xFFFFFFFF);
     
-    // 5. Get contiguous buffer from sample
+    // 5. Seek to 1 second (skip black frames)
+    IMFSourceReader_SetCurrentPosition(sourceReader, Guid.Empty, 10000000);
+    
+    // 6. Read a sample (video frame)
+    IMFSourceReader_ReadSample(sourceReader, FIRST_VIDEO_STREAM, ..., out sample);
+    
+    // 7. Get contiguous buffer from sample
     IMFSample_ConvertToContiguousBuffer(sample, out mediaBuffer);
     
-    // 6. Lock buffer and copy data
+    // 8. Lock buffer and copy RGB data
     IMFMediaBuffer_Lock(mediaBuffer, out bufferData, ...);
     Marshal.Copy(bufferData, frameData, 0, length);
     
-    // 7. TODO: Convert to PNG
-    return null; // Placeholder until PNG conversion implemented
+    // 9. Convert to PNG
+    BitmapSource bitmap = BitmapSource.Create(width, height, 96, 96, 
+        PixelFormats.Bgr32, null, frameData, stride);
+    
+    // 10. Scale to thumbnail size
+    if (width > 320 || height > 180) {
+        bitmap = new TransformedBitmap(bitmap, new ScaleTransform(scale, scale));
+    }
+    
+    // 11. Encode as PNG
+    var encoder = new PngBitmapEncoder();
+    encoder.Frames.Add(BitmapFrame.Create(bitmap));
+    encoder.Save(stream);
+    
+    return stream.ToArray(); // PNG byte array
 }
 ```
 
 **P/Invoke APIs Used**:
+- `MFCreateAttributes` (Mfplat.dll)
+- `IMFAttributes::SetUINT32` (Mfplat.dll)
 - `MFCreateSourceReaderFromMediaSource` (Mfreadwrite.dll)
 - `IMFSourceReader::SetStreamSelection` (Mfreadwrite.dll)
+- `MFCreateMediaType` (Mfplat.dll)
+- `IMFMediaType::SetGUID` (Mfplat.dll)
+- `IMFSourceReader::SetCurrentMediaType` (Mfreadwrite.dll)
+- `IMFSourceReader::GetCurrentMediaType` (Mfreadwrite.dll)
+- `IMFMediaType::GetUINT64` (Mfplat.dll)
+- `IMFMediaType::GetUINT32` (Mfplat.dll)
 - `IMFSourceReader::SetCurrentPosition` (Mfreadwrite.dll)
 - `IMFSourceReader::ReadSample` (Mfreadwrite.dll)
 - `IMFSample::ConvertToContiguousBuffer` (Mfplat.dll)
 - `IMFMediaBuffer::Lock` (Mfplat.dll)
 - `IMFMediaBuffer::Unlock` (Mfplat.dll)
+
+**WPF Imaging APIs Used**:
+- `System.Windows.Media.Imaging.BitmapSource.Create()` - Creates bitmap from RGB buffer
+- `System.Windows.Media.Imaging.TransformedBitmap` - Scales bitmap down
+- `System.Windows.Media.Imaging.PngBitmapEncoder` - Encodes as PNG
+- `System.Windows.Media.Imaging.BitmapFrame` - Creates frame for encoder
 
 ## Performance Optimizations
 
