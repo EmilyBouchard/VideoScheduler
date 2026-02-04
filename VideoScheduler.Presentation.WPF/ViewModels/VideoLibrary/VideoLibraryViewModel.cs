@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VideoScheduler.Application.VideoLibrary.Services;
@@ -12,13 +14,18 @@ public partial class VideoLibraryViewModel : ObservableObject
 {
     private readonly IVideoLibraryScanner _scanner;
     private readonly IVideoMetadataService _metadataService;
+    private readonly IThumbnailService _thumbnailService;
 
     private CancellationTokenSource? _loadCts;
     
-    public VideoLibraryViewModel(IVideoLibraryScanner scanner, IVideoMetadataService metadataService)
+    public VideoLibraryViewModel(
+        IVideoLibraryScanner scanner, 
+        IVideoMetadataService metadataService,
+        IThumbnailService thumbnailService)
     {
         _scanner = scanner;
         _metadataService = metadataService;
+        _thumbnailService = thumbnailService;
     }
 
     public ObservableCollection<FolderNodeViewModel> Folders { get; } = new();
@@ -35,6 +42,28 @@ public partial class VideoLibraryViewModel : ObservableObject
 
     [ObservableProperty]
     private string? _statusText;
+
+    [RelayCommand]
+    private void BrowseFolder()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            CheckFileExists = false,
+            CheckPathExists = true,
+            FileName = "Select Folder",
+            ValidateNames = false,
+            Title = "Select Video Library Folder"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            var folderPath = Path.GetDirectoryName(dialog.FileName);
+            if (!string.IsNullOrEmpty(folderPath))
+            {
+                RootFolder = folderPath;
+            }
+        }
+    }
 
     [RelayCommand]
     private async Task LoadAsync()
@@ -61,9 +90,19 @@ public partial class VideoLibraryViewModel : ObservableObject
             await foreach (var video in _scanner.EnumerateVideosAsync(RootFolder, ct))
             {
                 var duration = await _metadataService.TryGetVideoDurationAsync(video.FullPath, ct);
-                var durationText = duration is null ? null : duration.Value.ToString(@"hh\:mm\:ss");
+                var durationText = duration is null ? "Unknown" : duration.Value.ToString(@"hh\:mm\:ss");
 
-                Videos.Add(new VideoAssetItemViewModel(video.FullPath, video.FileName, durationText));
+                var videoVm = new VideoAssetItemViewModel(
+                    video.FullPath, 
+                    video.FileName,
+                    video.SizeInBytes,
+                    video.LastWriteTimeUtc,
+                    durationText);
+
+                Videos.Add(videoVm);
+
+                // Load thumbnail asynchronously in the background
+                _ = LoadThumbnailAsync(videoVm, ct);
             }
 
             StatusText = $"Found {Videos.Count} videos.";
@@ -79,6 +118,44 @@ public partial class VideoLibraryViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task LoadThumbnailAsync(VideoAssetItemViewModel videoVm, CancellationToken ct)
+    {
+        try
+        {
+            videoVm.IsThumbnailLoading = true;
+            
+            var thumbnailBytes = await _thumbnailService.TryExtractThumbnailAsync(videoVm.FullPath, ct);
+            
+            if (thumbnailBytes != null && thumbnailBytes.Length > 0)
+            {
+                // Must create BitmapImage on a background thread and freeze it
+                await Task.Run(() =>
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = new MemoryStream(thumbnailBytes);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    bitmap.Freeze(); // Required for cross-thread access
+                    
+                    videoVm.ThumbnailImage = bitmap;
+                }, ct);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Ignore cancellation
+        }
+        catch
+        {
+            // Silently fail - thumbnail will remain null
+        }
+        finally
+        {
+            videoVm.IsThumbnailLoading = false;
         }
     }
 

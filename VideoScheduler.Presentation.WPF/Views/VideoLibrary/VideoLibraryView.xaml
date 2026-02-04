@@ -11,14 +11,23 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- Top Bar with Folder Selection -->
         <DockPanel Margin="12" Grid.Row="0" LastChildFill="True">
-            <TextBlock Text="Root Folder:" VerticalAlignment="Center" Margin="0,0,8,0" />
-            <TextBox Text="{Binding RootFolder, UpdateSourceTrigger=PropertyChanged}" MinWidth="360" />
-            <Button Content="Scan" Margin="8,0,0,0"
+            <Button Content="Browse..." DockPanel.Dock="Left" Margin="0,0,8,0"
+                    Command="{Binding BrowseFolderCommand}"
+                    Padding="12,4" />
+            <Button Content="Scan" DockPanel.Dock="Right" Margin="8,0,0,0"
                     Command="{Binding LoadAsyncCommand}"
-                    IsEnabled="{Binding IsLoading, Converter={StaticResource BooleanInverterConverter}, FallbackValue=True}" />
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource BooleanInverterConverter}, FallbackValue=True}"
+                    Padding="12,4" />
+            <TextBox Text="{Binding RootFolder, UpdateSourceTrigger=PropertyChanged}" 
+                     MinWidth="360"
+                     IsReadOnly="True"
+                     VerticalContentAlignment="Center"
+                     Margin="0,0,8,0" />
         </DockPanel>
 
+        <!-- Main Content Area -->
         <Grid Grid.Row="1" Margin="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" />
@@ -26,6 +35,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <!-- Folder TreeView/List -->
             <GroupBox Header="Folders" Grid.Column="0">
                 <ListBox ItemsSource="{Binding Folders}"
                          SelectedItem="{Binding SelectedFolder}"
@@ -40,21 +50,115 @@
                 </ListBox>
             </GroupBox>
 
+            <!-- Video Cards Display -->
             <GroupBox Header="Videos" Grid.Column="2">
-                <ListView ItemsSource="{Binding Videos}"
-                          VirtualizingPanel.IsVirtualizing="True"
-                          VirtualizingPanel.VirtualizationMode="Recycling"
-                          ScrollViewer.CanContentScroll="True">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="File" DisplayMemberBinding="{Binding FileName}" Width="360" />
-                            <GridViewColumn Header="Duration" DisplayMemberBinding="{Binding DurationText}" Width="120" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Videos}"
+                                  VirtualizingPanel.IsVirtualizing="True"
+                                  VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Video Card -->
+                                <Border BorderBrush="#CCCCCC" 
+                                        BorderThickness="1" 
+                                        CornerRadius="4"
+                                        Margin="8"
+                                        Width="200"
+                                        Background="White">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="8" 
+                                                          ShadowDepth="2" 
+                                                          Opacity="0.3" 
+                                                          Color="Black" />
+                                    </Border.Effect>
+                                    
+                                    <StackPanel>
+                                        <!-- Thumbnail Area -->
+                                        <Border Height="112" 
+                                                Background="#F5F5F5"
+                                                BorderBrush="#DDDDDD"
+                                                BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <!-- Thumbnail Image -->
+                                                <Image Source="{Binding ThumbnailImage}"
+                                                       Stretch="UniformToFill"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                                
+                                                <!-- Placeholder when no thumbnail -->
+                                                <Viewbox Width="48" Height="48"
+                                                         Visibility="{Binding ThumbnailImage, Converter={StaticResource NullToVisibilityConverter}}">
+                                                    <TextBlock Text="🎬" 
+                                                               FontSize="48"
+                                                               Foreground="#AAAAAA"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center" />
+                                                </Viewbox>
+                                                
+                                                <!-- Loading Indicator -->
+                                                <ProgressBar IsIndeterminate="True"
+                                                             Height="4"
+                                                             VerticalAlignment="Bottom"
+                                                             Visibility="{Binding IsThumbnailLoading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            </Grid>
+                                        </Border>
+                                        
+                                        <!-- Metadata Area -->
+                                        <StackPanel Margin="8">
+                                            <!-- File Name -->
+                                            <TextBlock Text="{Binding FileName}"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding FileName}"
+                                                       Margin="0,0,0,4" />
+                                            
+                                            <!-- Duration -->
+                                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                                <TextBlock Text="Duration: " 
+                                                           FontSize="11"
+                                                           Foreground="#666666" />
+                                                <TextBlock Text="{Binding DurationText}"
+                                                           FontSize="11"
+                                                           Foreground="#666666" />
+                                            </StackPanel>
+                                            
+                                            <!-- File Size -->
+                                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                                <TextBlock Text="Size: " 
+                                                           FontSize="11"
+                                                           Foreground="#666666" />
+                                                <TextBlock Text="{Binding FileSizeText}"
+                                                           FontSize="11"
+                                                           Foreground="#666666" />
+                                            </StackPanel>
+                                            
+                                            <!-- Last Modified -->
+                                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                                <TextBlock Text="Modified: " 
+                                                           FontSize="11"
+                                                           Foreground="#666666" />
+                                                <TextBlock Text="{Binding LastModifiedText}"
+                                                           FontSize="11"
+                                                           Foreground="#666666" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
             </GroupBox>
         </Grid>
 
+        <!-- Status Bar -->
         <StatusBar Grid.Row="2">
             <StatusBarItem Content="{Binding StatusText}" />
             <Separator />
