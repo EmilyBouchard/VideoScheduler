@@ -39,7 +39,7 @@ public partial class VideoLibraryViewModel : ObservableObject, INavigationAware
     private string _searchText = string.Empty;
     
     [ObservableProperty]
-    private ObservableCollection<VideoAsset> _videos = [];
+    private ObservableCollection<VideoAsset> _videos = new();
     
     [RelayCommand]
     private async Task LoadVideosAsync(CancellationToken cancellationToken)
