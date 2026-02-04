@@ -8,6 +8,7 @@
         <ImplicitUsings>disabled</ImplicitUsings>
         <UseWPF>true</UseWPF>
         <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
     </PropertyGroup>
 
     <ItemGroup>
