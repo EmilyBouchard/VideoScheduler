@@ -5,7 +5,12 @@ You are assisting on a **portfolio-grade WPF application**. Prioritize maintaina
 ## Source of truth
 - Read and follow **AGENT.md** at repo root.
 - Read and follow all **ADRs** in `docs/adr/*.md`.
-- If any instruction conflicts, follow ADRs first, then AGENT.md.
+- **Path-specific instructions** in `.github/instructions/` apply to specific layers:
+  - `domain.instructions.md` - Domain layer patterns
+  - `application.instructions.md` - Application layer contracts
+  - `infrastructure.instructions.md` - Infrastructure implementation rules
+  - `presentation.instructions.md` - WPF/MVVM patterns
+- If any instruction conflicts, follow ADRs first, then AGENT.md, then layer-specific instructions.
 
 ## Core architecture (do not change)
 - Solution layering:
