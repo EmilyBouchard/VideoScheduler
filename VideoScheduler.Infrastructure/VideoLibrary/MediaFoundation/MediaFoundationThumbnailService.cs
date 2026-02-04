@@ -100,14 +100,14 @@ public sealed class MediaFoundationThumbnailService : IThumbnailService
             hr = MFCreateMediaType(out mediaType);
             if (hr != 0) return null;
 
-            var majorTypeGuid = new Guid(0x73646976, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71); // MFMediaType_Video
-            var mtMajorType = new Guid(0x48eba18e, 0xf8c9, 0x4687, 0xbf, 0x11, 0x0a, 0x74, 0xc9, 0xf9, 0x6a, 0x8f);
-            hr = IMFMediaType_SetGUID(mediaType, ref mtMajorType, ref majorTypeGuid);
+            var videoTypeValue = new Guid(0x73646976, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71); // MFMediaType_Video
+            var majorTypeKey = new Guid(0x48eba18e, 0xf8c9, 0x4687, 0xbf, 0x11, 0x0a, 0x74, 0xc9, 0xf9, 0x6a, 0x8f);
+            hr = IMFMediaType_SetGUID(mediaType, ref majorTypeKey, ref videoTypeValue);
             if (hr != 0) return null;
 
-            var rgb32Guid = new Guid(0x00000016, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71); // MFVideoFormat_RGB32
-            var mtSubtype = new Guid(0xf7e34c9a, 0x42e8, 0x4714, 0xb7, 0x4b, 0xcb, 0x29, 0xd7, 0x2c, 0x35, 0xe5);
-            hr = IMFMediaType_SetGUID(mediaType, ref mtSubtype, ref rgb32Guid);
+            var rgb32FormatValue = new Guid(0x00000016, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71); // MFVideoFormat_RGB32
+            var subtypeKey = new Guid(0xf7e34c9a, 0x42e8, 0x4714, 0xb7, 0x4b, 0xcb, 0x29, 0xd7, 0x2c, 0x35, 0xe5);
+            hr = IMFMediaType_SetGUID(mediaType, ref subtypeKey, ref rgb32FormatValue);
             if (hr != 0) return null;
 
             // Set the media type on the source reader
@@ -122,8 +122,8 @@ public sealed class MediaFoundationThumbnailService : IThumbnailService
 
             // Get frame dimensions
             ulong frameSize = 0;
-            var mtFrameSize = new Guid(0x1652c33d, 0xd6b2, 0x4012, 0xb8, 0x34, 0x72, 0x03, 0x08, 0x49, 0xa3, 0x7d);
-            hr = IMFMediaType_GetUINT64(mediaType, ref mtFrameSize, out frameSize);
+            var frameSizeKey = new Guid(0x1652c33d, 0xd6b2, 0x4012, 0xb8, 0x34, 0x72, 0x03, 0x08, 0x49, 0xa3, 0x7d);
+            hr = IMFMediaType_GetUINT64(mediaType, ref frameSizeKey, out frameSize);
             if (hr != 0) return null;
 
             uint width = (uint)(frameSize >> 32);
@@ -134,8 +134,8 @@ public sealed class MediaFoundationThumbnailService : IThumbnailService
 
             // Get stride (bytes per row)
             int stride;
-            var mtDefaultStride = new Guid(0x644b4e48, 0x1e02, 0x4516, 0xb0, 0xeb, 0xc0, 0x1c, 0xa9, 0xd4, 0x9a, 0xc6);
-            hr = IMFMediaType_GetUINT32(mediaType, ref mtDefaultStride, out uint strideUint);
+            var defaultStrideKey = new Guid(0x644b4e48, 0x1e02, 0x4516, 0xb0, 0xeb, 0xc0, 0x1c, 0xa9, 0xd4, 0x9a, 0xc6);
+            hr = IMFMediaType_GetUINT32(mediaType, ref defaultStrideKey, out uint strideUint);
             if (hr == 0)
             {
                 stride = (int)strideUint;
@@ -262,9 +262,6 @@ public sealed class MediaFoundationThumbnailService : IThumbnailService
             if (width > ThumbnailWidth || height > ThumbnailHeight)
             {
                 double scale = Math.Min((double)ThumbnailWidth / width, (double)ThumbnailHeight / height);
-                int newWidth = (int)(width * scale);
-                int newHeight = (int)(height * scale);
-                
                 var scaledBitmap = new TransformedBitmap(bitmap, new ScaleTransform(scale, scale));
                 bitmap = scaledBitmap;
             }
