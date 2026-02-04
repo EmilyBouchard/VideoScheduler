@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\VideoScheduler.Application\VideoScheduler.Application.csproj" />
+      <ProjectReference Include="..\VideoScheduler.Infrastructure\VideoScheduler.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

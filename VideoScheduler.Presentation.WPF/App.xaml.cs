@@ -4,6 +4,8 @@ using System.Data;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using VideoScheduler.Application.VideoLibrary.Services;
+using VideoScheduler.Infrastructure.VideoLibrary;
 using VideoScheduler.Presentation.WPF.Navigation;
 using VideoScheduler.Presentation.WPF.ViewModels;
 using VideoScheduler.Presentation.WPF.ViewModels.VideoLibrary;
@@ -43,6 +45,11 @@ public partial class App : System.Windows.Application
                         setCurrent: vm => shellVm.CurrentViewModel = vm
                     );
                 });
+                
+                // Application Services
+                services.AddSingleton<IVideoLibraryScanner, FileSystemVideoLibraryScanner>();
+                services.AddSingleton<IVideoMetadataService, NoOpVideoMetadataService>();
+                services.AddSingleton<IThumbnailService, PlaceholderThumbnailService>();
                 
                 // App services
                 services.AddSingleton<Services.IDispatcher, Services.WpfDispatcher>();

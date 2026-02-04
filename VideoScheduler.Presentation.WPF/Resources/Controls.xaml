@@ -1,5 +1,12 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:VideoScheduler.Presentation.WPF.Converters">
+    
+    <!-- Converters -->
+    <converters:BooleanInverterConverter x:Key="BooleanInverterConverter" />
+    <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    
     <Style TargetType="Window">
         <Setter Property="Background" Value="{StaticResource AppBg}" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
