@@ -53,3 +53,29 @@ You are assisting on a **portfolio-grade WPF application**. Prioritize maintaina
 ## When you respond
 - If a change affects architecture, mention which ADR/AGENT rule it satisfies.
 - If you propose something new, also propose an ADR entry (title + decision + rationale).
+
+## Building and testing
+
+### Local development setup
+- **Prerequisites**: .NET 9.0 SDK, Windows OS (for WPF)
+- **Restore**: `dotnet restore VideoScheduler.sln`
+- **Build**: `dotnet build VideoScheduler.sln --configuration Debug`
+- **Run WPF app**: `dotnet run --project VideoScheduler.Presentation.WPF`
+
+### Running tests
+- **All tests**: `dotnet test VideoScheduler.sln --verbosity normal`
+- **With coverage**: `dotnet test VideoScheduler.sln --collect:"XPlat Code Coverage"`
+- **Domain only**: `dotnet test VideoScheduler.Domain.Tests/VideoScheduler.Domain.Tests.csproj`
+- **Application only**: `dotnet test VideoScheduler.Application.Tests/VideoScheduler.Application.Tests.csproj`
+
+### Testing framework
+- **xUnit** for test framework
+- **FluentAssertions** for assertions
+- **NSubstitute** for mocking
+- Tests must follow AAA pattern (Arrange, Act, Assert)
+- See `docs/CI.md` for detailed testing and CI/CD information
+
+### Before committing
+1. Run `dotnet build VideoScheduler.sln` to ensure no build errors
+2. Run `dotnet test VideoScheduler.sln` to ensure all tests pass
+3. Review changes to ensure minimal, focused modifications
