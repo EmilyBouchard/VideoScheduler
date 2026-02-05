@@ -17,7 +17,7 @@
                     Command="{Binding BrowseFolderCommand}"
                     Padding="12,4" />
             <Button Content="Scan" DockPanel.Dock="Right" Margin="8,0,0,0"
-                    Command="{Binding LoadAsyncCommand}"
+                    Command="{Binding LoadCommand}"
                     IsEnabled="{Binding IsLoading, Converter={StaticResource BooleanInverterConverter}, FallbackValue=True}"
                     Padding="12,4" />
             <TextBox Text="{Binding RootFolder, UpdateSourceTrigger=PropertyChanged}" 

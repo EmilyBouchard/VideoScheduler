@@ -7,8 +7,12 @@
         mc:Ignorable="d"
         Title="{Binding Title}"
         Height="450" Width="800"
-        WindowStartupLocation="CenterScreen">
-    <Grid Margin="16">
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AppBg}"
+        Foreground="{StaticResource TextBrush}">
+    <Grid Margin="16"
+          Background="{StaticResource AppBg}"
+          TextElement.Foreground="{StaticResource TextBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -16,11 +20,8 @@
 
         <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="SemiBold" />
 
-        <Border Grid.Row="1" Margin="0,12,0,0" Padding="16" CornerRadius="12">
-            <StackPanel>
-                <TextBlock Text="Scaffold is ruynning (Toolkit MVVM + Generic Host + DI)." />
-                <TextBlock Margin="0,8,0,0" Opacity="0.75" Text="Next: add VideoLibrary module + navigation host + templates." />
-            </StackPanel>
-        </Border>
+        <ContentControl Grid.Row="1"
+                        Margin="0,12,0,0"
+                        Content="{Binding CurrentViewModel}" />
     </Grid>
 </Window>
